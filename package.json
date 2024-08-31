@@ -10,6 +10,7 @@
   "license": "MIT",
   "description": "Exposing taking screenshots of webpages as an API endpoint.",
   "dependencies": {
+    "express": "^4.19.2",
     "puppeteer": "^23.1.1"
   }
 }
