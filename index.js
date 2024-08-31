@@ -1,5 +1,6 @@
 const express = require('express')
 const puppeteer = require("puppeteer");
+const moment = require('moment')
 
 app = express();
 
@@ -19,7 +20,7 @@ app.get("/", async (request, response) => {
     if (!url) {
       throw new Error("You need to specify a 'url' to capture.");
     }
-    console.log(`Info: Launching webbrowser (${url})`);
+    console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Launching webbrowser (${url})`);
     const browser = await puppeteer.launch({
       headless: true,
       args: ["--disable-setuid-sandbox"],
@@ -32,14 +33,14 @@ app.get("/", async (request, response) => {
       }
       await page.setViewport({ width: parseInt(pageWidth), height: parseInt(pageHeight) });
     }
-    console.log(`Info: Loading webpage (${url})`);
+    console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Loading webpage (${url})`);
     await page.goto(url, { waitUntil: "networkidle2" });
     var imageBuffer;
     if (selector) {
       if (screenshotWidth || screenshotHeight){
         throw new Error("screenshotWidth and screenshotHeight have no effect when specifying a selector element");
       }
-      console.log(`Info: Taking element screenshot (${url})`);
+      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking element screenshot (${url})`);
       await page.waitForSelector(selector);
       const element = await page.$(selector);
       imageBuffer = await element.screenshot({type: filetype});
@@ -47,7 +48,7 @@ app.get("/", async (request, response) => {
       if (!screenshotWidth || !screenshotHeight) {
         throw new Error("Both screenshotWidth and screenshotHeight must be specified");
       }
-      console.log(`Info: Taking snippet screenshot (${url})`);
+      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking snippet screenshot (${url})`);
       imageBuffer = await page.screenshot({
         clip: {
           x: parseInt(screenshotPositionX),
@@ -58,7 +59,7 @@ app.get("/", async (request, response) => {
         type: filetype
       });
     } else {
-      console.log(`Info: Taking full page screenshot (${url})`);
+      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking full page screenshot (${url})`);
       imageBuffer = await page.screenshot({
         fullPage: true,
         type: filetype
@@ -69,12 +70,12 @@ app.get("/", async (request, response) => {
     response.write(imageBuffer,'binary')
     response.end(null, 'binary')
   } catch (error) {
-    console.log(error);
+    console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] ${error}`);
     response.status(400);
     response.send({ "status": 400,"message": error.message })
   }
 });
 
 var listener = app.listen(3000, function () {
-  console.log('Your app is listening on port http://localhost:' + listener.address().port);
+  console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Your app is listening on port http://localhost:${listener.address().port}`);
 });

@@ -11,6 +11,7 @@
   "description": "Exposing taking screenshots of webpages as an API endpoint.",
   "dependencies": {
     "express": "^4.19.2",
+    "moment": "^2.30.1",
     "puppeteer": "^23.1.1"
   }
 }
