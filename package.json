@@ -1,14 +1,14 @@
 {
-  "name": "scraper",
-  "version": "0.0.1",
+  "name": "screenshot_as_a_service",
+  "version": "0.1.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Lars Sørensen <dev@lrss.dk>",
+  "license": "MIT",
+  "description": "Exposing taking screenshots of webpages as an API endpoint.",
   "dependencies": {
     "puppeteer": "^23.1.1"
   }
