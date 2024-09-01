@@ -29,8 +29,12 @@ app.get("/", async (request, response) => {
       ignoreHTTPSErrors: true,
     });
     const page = await browser.newPage();
-    console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Setting viewport ${pageWidth}x${pageHeight} resolution, ${scale} scale factor (${url})`);
-    await page.setViewport({ width: parseInt(pageWidth), height: parseInt(pageHeight), deviceScaleFactor: parseFloat(scale) });
+    if (filetype == "png" || filetype == "jpeg" || filetype == "webp"){
+      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Setting viewport ${pageWidth}x${pageHeight} resolution, ${scale} scale factor (${url})`);
+      await page.setViewport({ width: parseInt(pageWidth), height: parseInt(pageHeight), deviceScaleFactor: parseFloat(scale) });
+    } else if (filetype != "pdf" ){
+      throw new Error("Only supported filetypes are png, jpeg, webp, and pdf.");
+    }
     console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Loading webpage (${url})`);
     await page.goto(url, { waitUntil: "networkidle2" });
     let imageBuffer;
@@ -41,12 +45,19 @@ app.get("/", async (request, response) => {
       console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking element screenshot (${url})`);
       await page.waitForSelector(selector);
       const element = await page.$(selector);
+      if (filetype == "pdf"){
+        throw new Error("pdf capture only works for fullpage rendering.");
+      }
       imageBuffer = await element.screenshot({type: filetype});
     } else if (screenshotWidth || screenshotHeight) {
       if (!screenshotWidth || !screenshotHeight) {
         throw new Error("Both screenshotWidth and screenshotHeight must be specified.");
       }
       console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking snippet screenshot (${url})`);
+
+      if (filetype == "pdf"){
+        throw new Error("pdf capture only works for fullpage rendering.");
+      }
       imageBuffer = await page.screenshot({
         clip: {
           x: parseInt(screenshotPositionX),
@@ -58,13 +69,26 @@ app.get("/", async (request, response) => {
       });
     } else {
       console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking full page screenshot (${url})`);
-      imageBuffer = await page.screenshot({
-        fullPage: pageHeight ? false : true,
-        type: filetype
-      });
+      if (filetype == "pdf"){
+        if (request.query.pageWidth || request.query.pageHeight){
+          imageBuffer = await page.pdf({
+            width: parseInt(pageWidth),
+            height: parseInt(pageHeight),
+          });
+        } else {
+          imageBuffer = await page.pdf({
+            format: 'A4',
+          });
+        }
+      } else {
+        imageBuffer = await page.screenshot({
+          fullPage: pageHeight ? false : true,
+          type: filetype
+        });
+      }
     }
     await browser.close();
-    response.set('content-type', 'image/' + filetype);
+    response.set('content-type', ("pdf" ? 'application/' : 'image/') + filetype);
     response.write(imageBuffer,'binary')
     response.end(null, 'binary')
   } catch (error) {
