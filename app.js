@@ -36,7 +36,7 @@ app.get("/", async (request, response) => {
     let imageBuffer;
     if (selector) {
       if (screenshotWidth || screenshotHeight){
-        throw new Error("screenshotWidth and screenshotHeight have no effect when specifying a selector element");
+        throw new Error("screenshotWidth and screenshotHeight have no effect when specifying a selector element.");
       }
       console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking element screenshot (${url})`);
       await page.waitForSelector(selector);
@@ -44,7 +44,7 @@ app.get("/", async (request, response) => {
       imageBuffer = await element.screenshot({type: filetype});
     } else if (screenshotWidth || screenshotHeight) {
       if (!screenshotWidth || !screenshotHeight) {
-        throw new Error("Both screenshotWidth and screenshotHeight must be specified");
+        throw new Error("Both screenshotWidth and screenshotHeight must be specified.");
       }
       console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking snippet screenshot (${url})`);
       imageBuffer = await page.screenshot({
