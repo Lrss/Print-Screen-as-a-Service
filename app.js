@@ -26,6 +26,31 @@ app.get("/", async (request, response) => {
     screenshotPositionY = 0
   } = request.query;
   try {
+    if (Object.keys(request.query).length === 0){
+      print_error("No queries defined");
+      response.status(406);
+      response.send({ 
+        status: 406,
+        message: "No queries provided. You need to atleast specify an url to capture.",
+        mandatoryQueries: {
+          url: "https://example.com"
+        },
+        queriesWithDefaultValues: {
+          scale: 1,
+          pageWidth: 800,
+          pageHeight: 600,
+          filetype: "png,jpg,webp,pdf",
+          screenshotPositionX: 0,
+          screenshotPositionY: 0
+        },
+        optionalQueries: {
+          selector: "limit screenshot to a single class, id, or element",
+          screenshotWidth: "limit screenshot to a snippet",
+          screenshotHeight: "limit screenshot to a snippet",
+        }
+      })
+      return;
+    }
     if (!url) {
       throw new Error("You need to specify a 'url' to capture.");
     }
