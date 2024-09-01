@@ -95,7 +95,10 @@ app.get("/", async (request, response) => {
       }
     }
     await browser.close();
-    response.set('content-type', ("pdf" ? 'application/' : 'image/') + filetype);
+    response.set(
+      'content-type', 
+      (filetype == "pdf" ? 'application/' : 'image/') + filetype
+    );
     response.write(imageBuffer,'binary')
     response.end(null, 'binary')
   } catch (error) {
