@@ -76,6 +76,28 @@ app.get("/", async (request, response) => {
   }
 });
 
-var listener = app.listen(3000, function () {
+let port = process.env.PORT || 3000;
+for (i = 2; i < process.argv.length; i++){
+  if (process.argv[i] === "-h" || process.argv[i] === "--help"){
+    console.log("You can specify a custom port to listen on, using the -p --port flag");
+    process.exit(0);
+  }
+  else if (process.argv[i] === "-p" || process.argv[i] === "--port"){
+    i++;
+    if (i >= process.argv.length){
+      console.log("You need to specify a port number after the --port argument.");
+      process.exit(1);
+    }
+    let numberArg = parseInt(process.argv[i]);
+    if (isNaN(numberArg) || numberArg > 65535 || numberArg < 1)
+    {
+      console.log(`The argument ${process.argv[i]} could not be interpreted as a valid port number.`);
+      process.exit(1);
+    }
+    port = numberArg;
+  } 
+}
+
+let listener = app.listen(port, function () {
   console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Your app is listening on port http://localhost:${listener.address().port}`);
 });
