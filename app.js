@@ -9,7 +9,8 @@ app.get("/", async (request, response) => {
   const {
     url,
     pageWidth = "800",
-    pageHeight,
+    pageHeight = "600",
+    scale = "1",
     selector,
     filetype = "png",
     screenshotWidth,
@@ -28,10 +29,8 @@ app.get("/", async (request, response) => {
       ignoreHTTPSErrors: true,
     });
     const page = await browser.newPage();
-    if (pageHeight || pageWidth !== "800") {
-      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Setting viewport ${pageWidth}x${pageHeight} (${url})`);
-      await page.setViewport({ width: parseInt(pageWidth), height: pageHeight ? parseInt(pageHeight) : 600 });
-    }
+    console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Setting viewport ${pageWidth}x${pageHeight} resolution, ${scale} scale factor (${url})`);
+    await page.setViewport({ width: parseInt(pageWidth), height: parseInt(pageHeight), deviceScaleFactor: parseFloat(scale) });
     console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Loading webpage (${url})`);
     await page.goto(url, { waitUntil: "networkidle2" });
     let imageBuffer;
