@@ -34,7 +34,7 @@ app.get("/", async (request, response) => {
     }
     console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Loading webpage (${url})`);
     await page.goto(url, { waitUntil: "networkidle2" });
-    var imageBuffer;
+    let imageBuffer;
     if (selector) {
       if (screenshotWidth || screenshotHeight){
         throw new Error("screenshotWidth and screenshotHeight have no effect when specifying a selector element");
