@@ -5,6 +5,13 @@ const moment = require('moment')
 
 app = express();
 
+function print_log(message){ 
+  console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: ${message}`);
+}
+function print_error(message){ 
+  console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Error: ${message}`);
+}
+
 app.get("/", async (request, response) => {
   const {
     url,
@@ -22,7 +29,7 @@ app.get("/", async (request, response) => {
     if (!url) {
       throw new Error("You need to specify a 'url' to capture.");
     }
-    console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Launching webbrowser (${url})`);
+    print_log(`Launching webbrowser (${url})`);
     const browser = await puppeteer.launch({
       headless: true,
       args: ["--disable-setuid-sandbox"],
@@ -30,19 +37,19 @@ app.get("/", async (request, response) => {
     });
     const page = await browser.newPage();
     if (filetype == "png" || filetype == "jpeg" || filetype == "webp"){
-      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Setting viewport ${pageWidth}x${pageHeight} resolution, ${scale} scale factor (${url})`);
+      print_log(`Setting viewport ${pageWidth}x${pageHeight} resolution, ${scale} scale factor (${url})`);
       await page.setViewport({ width: parseInt(pageWidth), height: parseInt(pageHeight), deviceScaleFactor: parseFloat(scale) });
     } else if (filetype != "pdf" ){
       throw new Error("Only supported filetypes are png, jpeg, webp, and pdf.");
     }
-    console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Loading webpage (${url})`);
+    print_log(`Loading webpage (${url})`);
     await page.goto(url, { waitUntil: "networkidle2" });
     let imageBuffer;
     if (selector) {
       if (screenshotWidth || screenshotHeight){
         throw new Error("screenshotWidth and screenshotHeight have no effect when specifying a selector element.");
       }
-      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking element screenshot (${url})`);
+      print_log(`Taking element screenshot (${url})`);
       await page.waitForSelector(selector);
       const element = await page.$(selector);
       if (filetype == "pdf"){
@@ -53,7 +60,7 @@ app.get("/", async (request, response) => {
       if (!screenshotWidth || !screenshotHeight) {
         throw new Error("Both screenshotWidth and screenshotHeight must be specified.");
       }
-      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking snippet screenshot (${url})`);
+      print_log(`Taking snippet screenshot (${url})`);
 
       if (filetype == "pdf"){
         throw new Error("pdf capture only works for fullpage rendering.");
@@ -68,7 +75,7 @@ app.get("/", async (request, response) => {
         type: filetype
       });
     } else {
-      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking full page screenshot (${url})`);
+      print_log(`Taking full page screenshot (${url})`);
       if (filetype == "pdf"){
         if (request.query.pageWidth || request.query.pageHeight){
           imageBuffer = await page.pdf({
@@ -92,7 +99,7 @@ app.get("/", async (request, response) => {
     response.write(imageBuffer,'binary')
     response.end(null, 'binary')
   } catch (error) {
-    console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] ${error}`);
+    print_error(error);
     response.status(400);
     response.send({ "status": 400,"message": error.message })
   }
@@ -121,5 +128,7 @@ for (i = 2; i < process.argv.length; i++){
 }
 
 let listener = app.listen(port, function () {
-  console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Your app is listening on port http://localhost:${listener.address().port}`);
+  print_log(
+    `Your app is listening on port http://localhost:${listener.address().port}`
+  );
 });
