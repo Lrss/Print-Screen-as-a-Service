@@ -8,7 +8,7 @@ app = express();
 app.get("/", async (request, response) => {
   const {
     url,
-    pageWidth,
+    pageWidth = "800",
     pageHeight,
     selector,
     filetype = "png",
@@ -28,11 +28,9 @@ app.get("/", async (request, response) => {
       ignoreHTTPSErrors: true,
     });
     const page = await browser.newPage();
-    if (pageWidth || pageHeight) {
-      if (!pageWidth || !pageHeight) {
-        throw new Error("Both pageWidth and pageHeight must be specified");
-      }
-      await page.setViewport({ width: parseInt(pageWidth), height: parseInt(pageHeight) });
+    if (pageHeight || pageWidth !== "800") {
+      console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Setting viewport ${pageWidth}x${pageHeight} (${url})`);
+      await page.setViewport({ width: parseInt(pageWidth), height: pageHeight ? parseInt(pageHeight) : 600 });
     }
     console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Loading webpage (${url})`);
     await page.goto(url, { waitUntil: "networkidle2" });
@@ -62,7 +60,7 @@ app.get("/", async (request, response) => {
     } else {
       console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: Taking full page screenshot (${url})`);
       imageBuffer = await page.screenshot({
-        fullPage: true,
+        fullPage: pageHeight ? false : true,
         type: filetype
       });
     }
