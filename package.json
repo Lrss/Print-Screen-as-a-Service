@@ -1,5 +1,5 @@
 {
-  "name": "screenshot_as_a_service",
+  "name": "print_screen_as_a_service",
   "version": "0.1.0",
   "main": "app.js",
   "scripts": {
