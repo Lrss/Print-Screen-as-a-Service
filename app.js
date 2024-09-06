@@ -5,11 +5,8 @@ const moment = require('moment')
 
 app = express();
 
-function print_log(message){ 
-  console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Info: ${message}`);
-}
-function print_error(message){ 
-  console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] Error: ${message}`);
+function print_log(message, log_type = "Info"){ 
+  console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] ${log_type}: ${message}`);
 }
 
 app.get("/", async (request, response) => {
@@ -27,7 +24,7 @@ app.get("/", async (request, response) => {
   } = request.query;
   try {
     if (Object.keys(request.query).length === 0){
-      print_error("No queries defined");
+      print_log("No queries defined", "Error");
       response.status(406);
       response.send({ 
         status: 406,
@@ -62,63 +59,60 @@ app.get("/", async (request, response) => {
     });
     const page = await browser.newPage();
     if (filetype == "png" || filetype == "jpeg" || filetype == "webp"){
-      print_log(`Setting viewport ${pageWidth}x${pageHeight} resolution, ${scale} scale factor (${url})`);
+      print_log(`Setting viewport ${pageWidth}x${pageHeight} resolution, ${scale} scale factor`);
       await page.setViewport({ width: parseInt(pageWidth), height: parseInt(pageHeight), deviceScaleFactor: parseFloat(scale) });
     } else if (filetype != "pdf" ){
       throw new Error("Only supported filetypes are png, jpeg, webp, and pdf.");
     }
-    print_log(`Loading webpage (${url})`);
+    print_log(`Loading webpage ${url}`);
     await page.goto(url, { waitUntil: "networkidle2" });
-    let imageBuffer;
+    const config = {};
+    if (filetype !== "pdf"){
+      config.type = filetype;
+    }
     if (selector) {
       if (screenshotWidth || screenshotHeight){
         throw new Error("screenshotWidth and screenshotHeight have no effect when specifying a selector element.");
       }
-      print_log(`Taking element screenshot (${url})`);
-      await page.waitForSelector(selector);
-      const element = await page.$(selector);
       if (filetype == "pdf"){
         throw new Error("pdf capture only works for fullpage rendering.");
       }
-      imageBuffer = await element.screenshot({type: filetype});
     } else if (screenshotWidth || screenshotHeight) {
       if (!screenshotWidth || !screenshotHeight) {
         throw new Error("Both screenshotWidth and screenshotHeight must be specified.");
       }
-      print_log(`Taking snippet screenshot (${url})`);
-
       if (filetype == "pdf"){
         throw new Error("pdf capture only works for fullpage rendering.");
       }
-      imageBuffer = await page.screenshot({
-        clip: {
+      config.clip = {
           x: parseInt(screenshotPositionX),
           y: parseInt(screenshotPositionY),
           width: parseInt(screenshotWidth),
-          height: parseInt(screenshotHeight),
-        },
-        type: filetype
-      });
+          height: parseInt(screenshotHeight)
+        };
     } else {
-      print_log(`Taking full page screenshot (${url})`);
       if (filetype == "pdf"){
         if (request.query.pageWidth || request.query.pageHeight){
-          imageBuffer = await page.pdf({
-            width: parseInt(pageWidth),
-            height: parseInt(pageHeight),
-          });
+          config.width = parseInt(pageWidth);
+          config.height = parseInt(pageHeight);
         } else {
-          imageBuffer = await page.pdf({
-            format: 'A4',
-          });
+          config.format = 'A4';
         }
-      } else {
-        imageBuffer = await page.screenshot({
-          fullPage: pageHeight ? false : true,
-          type: filetype
-        });
+      } else if (!request.query.pageHeight){
+        config.fullPage = true;
       }
     }
+    let imageBuffer;
+    if (filetype == "pdf"){
+      imageBuffer = await page.pdf(config);
+    } else if (selector) {
+      await page.waitForSelector(selector);
+      const element = await page.$(selector);
+      imageBuffer = await element.screenshot(config);
+    } else {
+      imageBuffer = await page.screenshot(config);
+    }
+    print_log(`Delivering ${filetype} from ${url} with config:${JSON.stringify(config)}`);
     await browser.close();
     response.set(
       'content-type', 
@@ -127,7 +121,7 @@ app.get("/", async (request, response) => {
     response.write(imageBuffer,'binary')
     response.end(null, 'binary')
   } catch (error) {
-    print_error(error);
+    print_log(error.message, error.constructor.name);
     response.status(400);
     response.send({ "status": 400,"message": error.message })
   }
