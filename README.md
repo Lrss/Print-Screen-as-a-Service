@@ -9,16 +9,6 @@ Then you can run with the service with the command `npm run start`
 ## Run in Docker
 TODO
 
-## Build Binary
-Install nexe and necessary dependencies
-```
-npm install -g nexe
-```
-Run with build argument, it takes a long time
-```
-nexe app.js --build -o print_screen_as_a_service`
-```
-
 ## Help
 On the server side there is only one setting, and that for setting the port 
 number. It is done with the `-p, --port int` flag like this:
