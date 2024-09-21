@@ -66,7 +66,7 @@ app.get("/", async (request, response) => {
     print_log(`Launching webbrowser (${url})`);
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--disable-setuid-sandbox"],
+      args: ['--no-sandbox'],
       ignoreHTTPSErrors: true,
     });
     const page = await browser.newPage();

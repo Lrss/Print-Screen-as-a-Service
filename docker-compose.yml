@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  prtscaas:
+    container_name: print_screen_as_a_service
+    image: prtscaas:slim
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
