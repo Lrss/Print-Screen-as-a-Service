@@ -27,3 +27,6 @@ It can also be achieved by setting the environment variable PORT and then parsed
 On client side the configuration can be set with with a url query string when 
 accessing the service. All available parameters can be displayed by calling the 
 web server only by its host and port with no path or query.
+
+# License
+See the LICENSE file for license rights and limitations (GPL-3.0).
