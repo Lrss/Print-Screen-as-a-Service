@@ -9,6 +9,15 @@ function print_log(message, log_type = "Info") {
   console.log(`[${moment().format('YYYY-MM-DD:HH:mm:ss')}] ${log_type}: ${message}`);
 }
 
+function getProtocol(str) {
+  try {
+      var u = new URL(str);
+      return u.protocol.slice(0, -1);
+  } catch (e) {
+      return '';
+  }
+
+}
 app.get("/", async (request, response) => {
   const {
     url,
@@ -50,6 +59,9 @@ app.get("/", async (request, response) => {
     }
     if (!url) {
       throw new Error("You need to specify a 'url' to capture.");
+    }
+    if (getProtocol(url) == '') {
+      throw new Error(`You need to specify a scheme for the url, try using "${"https://" + url}".`);
     }
     print_log(`Launching webbrowser (${url})`);
     const browser = await puppeteer.launch({
